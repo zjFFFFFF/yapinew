@@ -1,17 +1,15 @@
-const Safeify = require('safeify').default;
+const vm = require('vm');
 
 module.exports = async function sandboxFn(context, script) {
-    // 创建 safeify 实例
-    const safeVm = new Safeify({
-        timeout: 3000,
-        asyncTimeout: 60000
-    })
-
-    script += "; return this;";
-    // 执行动态代码
-    const result = await safeVm.run(script, context)
-
-    // 释放资源
-    safeVm.destroy()
-    return result
+  try {
+    const sandbox = context || {};
+    const scriptObj = new vm.Script(script);
+    const vmContext = new vm.createContext(sandbox);
+    scriptObj.runInContext(vmContext, {
+      timeout: 3000
+    });
+    return sandbox;
+  } catch (err) {
+    throw err;
+  }
 }

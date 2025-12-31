@@ -243,12 +243,14 @@ class TimeTree extends Component {
         </Modal>
         {this.props.type === 'project' && (
           <Row className="news-search">
-            <Col span="3">选择查询的 Api：</Col>
+            <Col span="5" className="label">
+              选择查询的 Api：
+            </Col>
             <Col span="10">
               <AutoComplete
                 onSelect={this.handleSelectApi}
                 style={{ width: '100%' }}
-                placeholder="Select Api"
+                placeholder="选择接口"
                 optionLabelProp="title"
                 filterOption={(inputValue, options) => {
                   if (options.props.value == '') return true;

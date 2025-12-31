@@ -18,6 +18,7 @@ import axios from 'axios';
 import { Link, withRouter } from 'react-router-dom';
 import produce from 'immer';
 import { arrayChangeIndex } from '../../../../common.js';
+import variable from '../../../../constants/variable';
 
 import './interfaceMenu.scss';
 
@@ -460,6 +461,9 @@ class InterfaceMenu extends Component {
     };
 
     const itemInterfaceCreate = item => {
+      let methodColor =
+        variable.METHOD_COLOR[item.method ? item.method.toLowerCase() : 'get'] ||
+        variable.METHOD_COLOR['get'];
       return (
         <TreeNode
           title={
@@ -473,6 +477,9 @@ class InterfaceMenu extends Component {
                 onClick={e => e.stopPropagation()}
                 to={'/project/' + matchParams.id + '/interface/api/' + item._id}
               >
+                <span className="btn-http" style={{ color: methodColor.color, backgroundColor: methodColor.bac, marginRight: 5 }}>
+                    {item.method}
+                </span>
                 {item.title}
               </Link>
               <div className="btns">
@@ -555,6 +562,7 @@ class InterfaceMenu extends Component {
                 key="root"
               />
               {menuList.map(item => {
+                const isExpanded = currentKes.expands && currentKes.expands.indexOf('cat_' + item._id) > -1;
                 return (
                   <TreeNode
                     title={
@@ -571,7 +579,7 @@ class InterfaceMenu extends Component {
                           }}
                           to={'/project/' + matchParams.id + '/interface/api/cat_' + item._id}
                         >
-                          <Icon type="folder-open" style={{ marginRight: 5 }} />
+                          <Icon type={isExpanded ? 'folder-open' : 'folder'} style={{ marginRight: 5 }} />
                           {item.name}
                         </Link>
                         <div className="btns">

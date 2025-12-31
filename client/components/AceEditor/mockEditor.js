@@ -4,6 +4,7 @@ require('brace/mode/javascript');
 require('brace/mode/json');
 require('brace/mode/xml');
 require('brace/mode/html');
+require('brace/mode/python');
 require('brace/theme/xcode');
 require('brace/ext/language_tools.js');
 var json5 = require('json5');

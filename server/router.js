@@ -10,6 +10,8 @@ const projectController = require('./controllers/project.js');
 const logController = require('./controllers/log.js');
 const followController = require('./controllers/follow.js');
 const openController = require('./controllers/open.js');
+const timerController = require('./controllers/timer.js');
+const testLogController = require('./controllers/testLog.js');
 const { createAction } = require('./utils/commons.js');
 
 const router = koaRouter();
@@ -42,6 +44,14 @@ let INTERFACE_CONFIG = {
   col: {
     prefix: '/col/',
     controller: interfaceColController
+  },
+  timer: {
+    prefix: '/col/',
+    controller: timerController
+  },
+  testLog: {
+    prefix: '/col/',
+    controller: testLogController
   },
   test: {
     prefix: '/test/',
@@ -498,6 +508,50 @@ let routerConfig = {
       action: 'getCaseEnvList',
       path: 'case_env_list',
       method: 'get'
+    }
+  ],
+  timer: [
+    {
+      action: 'addTimer',
+      path: 'add_timer',
+      method: 'post'
+    },
+    {
+      action: 'listTimer',
+      path: 'list_timer',
+      method: 'get'
+    },
+    {
+      action: 'getTimer',
+      path: 'get_timer',
+      method: 'get'
+    },
+    {
+      action: 'updateTimer',
+      path: 'up_timer',
+      method: 'post'
+    },
+    {
+      action: 'delTimer',
+      path: 'del_timer',
+      method: 'get'
+    }
+  ],
+  testLog: [
+    {
+      action: 'list',
+      path: 'test_report/list',
+      method: 'get'
+    },
+    {
+      action: 'get',
+      path: 'test_report/get',
+      method: 'get'
+    },
+    {
+      action: 'add',
+      path: 'test_report/save',
+      method: 'post'
     }
   ],
   test: [

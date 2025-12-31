@@ -17,8 +17,14 @@ const CaseReport = function(props) {
   let res_body = jsonFormat(props.res_body);
   let httpCode = props.status;
   let validRes;
+  let scriptOutput = [];
   if (props.validRes && Array.isArray(props.validRes)) {
     validRes = props.validRes.map((item, index) => {
+      // 提取脚本输出日志
+      if (item.message && typeof item.message === 'string' && item.message.indexOf('print:') === 0) {
+        scriptOutput.push(item.message.replace('print:', ''));
+        return null; // 不在验证结果中显示
+      }
       return <div key={index}>{item.message}</div>;
     });
   }
@@ -106,6 +112,18 @@ const CaseReport = function(props) {
             </Row>
           ) : null}
         </TabPane>
+        {scriptOutput.length > 0 ? (
+          <TabPane className="case-report-pane" tab="脚本输出" key="scriptOutput">
+            <Row className="case-report">
+              <Col className="case-report-title" span="6">
+                脚本输出
+              </Col>
+              <Col span="18">
+                <pre>{scriptOutput.join('\n')}</pre>
+              </Col>
+            </Row>
+          </TabPane>
+        ) : null}
       </Tabs>
     </div>
   );

@@ -52,7 +52,8 @@ class interfaceCase extends baseModel {
       test_res_header: Schema.Types.Mixed,
       mock_verify: { type: Boolean, default: false },
       enable_script: { type: Boolean, default: false },
-      test_script: String
+      test_script: String,
+      test_script_type: { type: String, default: 'js' }
     };
   }
 
@@ -75,7 +76,7 @@ class interfaceCase extends baseModel {
   }
 
   list(col_id, select) {
-    select = select || 'casename uid col_id _id index interface_id project_id';
+    select = select || 'casename uid col_id _id index interface_id project_id test_script_type';
     if (select === 'all') {
       return this.model
         .find({

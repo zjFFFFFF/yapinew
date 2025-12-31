@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { Link } from 'react-router-dom';
 //import constants from '../../../../constants/variable.js'
-import { Tooltip, Icon,Input, Button, Row, Col, Spin, Modal, message, Select, Switch } from 'antd';
+import { Tooltip, Icon,Input, Button, Row, Col, Spin, Modal, message, Select, Switch, Checkbox } from 'antd';
 import {
   fetchInterfaceColList,
   fetchCaseList,
@@ -126,19 +126,20 @@ class InterfaceColContent extends Component {
       currColEnvObj: {},
       collapseKey: '1',
       commonSettingModalVisible: false,
-      commonSetting: {
+      commonSetting:{
+        checkScript:{
+          enable: false,
+          content: ''
+        },
         checkHttpCodeIs200: false,
         checkResponseField: {
           name: 'code',
           value: '0',
           enable: false
         },
-        checkResponseSchema: false,
-        checkScript:{
-          enable: false,
-          content: ''
-        }
-      }
+        checkResponseSchema: false
+      },
+      selectedRowKeys: []
     };
     this.onRow = this.onRow.bind(this);
     this.onMoveRow = this.onMoveRow.bind(this);
@@ -167,6 +168,28 @@ class InterfaceColContent extends Component {
     this.changeCollapseClose();
     this.handleColdata(this.props.currCaseList);
   }
+
+  onSelect = (id) => {
+    const { selectedRowKeys } = this.state;
+    if (selectedRowKeys.includes(id)) {
+      this.setState({
+        selectedRowKeys: selectedRowKeys.filter(key => key !== id)
+      });
+    } else {
+      this.setState({
+        selectedRowKeys: [...selectedRowKeys, id]
+      });
+    }
+  };
+
+  onSelectAll = () => {
+    const { selectedRowKeys, rows } = this.state;
+    if (selectedRowKeys.length === rows.length) {
+      this.setState({ selectedRowKeys: [] });
+    } else {
+      this.setState({ selectedRowKeys: rows.map(row => row._id) });
+    }
+  };
 
   async componentWillMount() {
     const result = await this.props.fetchInterfaceColList(this.props.match.params.id);
@@ -242,11 +265,19 @@ class InterfaceColContent extends Component {
       });
     });
     this.setState({ rows: newRows });
+    // 默认全选
+    if (this.state.selectedRowKeys.length === 0 && newRows.length > 0) {
+      this.setState({ selectedRowKeys: newRows.map(r => r._id) });
+    }
   };
 
   executeTests = async () => {
     for (let i = 0, l = this.state.rows.length, newRows, curitem; i < l; i++) {
-      let { rows } = this.state;
+      let { rows, selectedRowKeys } = this.state;
+      // 如果没有选中，则不执行
+      if (selectedRowKeys.indexOf(rows[i]._id) === -1) {
+        continue;
+      }
 
       let envItem = _.find(this.props.envList, item => {
         return item._id === rows[i].project_id;
@@ -300,6 +331,34 @@ class InterfaceColContent extends Component {
       col_id: this.props.currColId,
       test_report: JSON.stringify(this.reports)
     });
+
+    // 保存测试报告到历史记录
+    try {
+        const testList = [];
+        const { selectedRowKeys } = this.state;
+        for(let i=0; i<selectedRowKeys.length; i++) {
+            let id = selectedRowKeys[i];
+            if(this.reports[id]){
+                testList.push(this.reports[id]);
+            }
+        }
+        const failedNum = testList.filter(item => item.code !== 0).length;
+        // 获取当前环境
+        let envItem = _.find(this.props.envList, item => {
+            return item._id === this.state.rows[0].project_id;
+        });
+        const env = envItem ? envItem.name : 'unknown';
+
+        await axios.post('/api/col/test_report/save', {
+            project_id: this.props.match.params.id,
+            col_id: this.props.currColId,
+            env: env,
+            test_list: testList,
+            status: failedNum === 0 ? 'ok' : 'failed'
+        });
+    } catch(e) {
+        console.error('保存测试报告失败', e);
+    }
   };
 
   handleTest = async interfaceData => {
@@ -373,7 +432,17 @@ class InterfaceColContent extends Component {
           }
         ];
       } else if (validRes.length > 0) {
-        result.code = 1;
+        // 判断是否只有 print 日志，如果是，则认为是验证通过
+        let hasError = validRes.some(item => {
+          return !item.message || typeof item.message !== 'string' || item.message.indexOf('print:') !== 0;
+        });
+
+        if (hasError) {
+          result.code = 1;
+        } else {
+          result.code = 0;
+          validRes.push({ message: '验证通过' });
+        }
         result.validRes = validRes;
       }
     } catch (data) {
@@ -406,6 +475,7 @@ class InterfaceColContent extends Component {
         response: response,
         records: this.records,
         script: interfaceData.test_script,
+        script_type: interfaceData.test_script_type,
         params: requestParams,
         col_id: this.props.currColId,
         interface_id: interfaceData.interface_id
@@ -414,6 +484,14 @@ class InterfaceColContent extends Component {
         test.data.data.logs.forEach(item => {
           validRes.push({ message: item });
         });
+      } else {
+        if(test.data.data && test.data.data.logs && Array.isArray(test.data.data.logs)){
+            test.data.data.logs.forEach(item => {
+                if(typeof item === 'string' && item.indexOf('print:') === 0){
+                    validRes.push({ message: item });
+                }
+            });
+        }
       }
     } catch (err) {
       validRes.push({
@@ -425,6 +503,18 @@ class InterfaceColContent extends Component {
   handleValue = (val, global) => {
     let globalValue = ArrayToObject(global);
     let context = Object.assign({}, { global: globalValue }, this.records);
+    // 检查是否有引用了不存在的变量
+    if (typeof val === 'string' && val.indexOf('$.') !== -1) {
+      const matches = val.match(/\$\.(\d+)\./g);
+      if (matches) {
+        for (let i = 0; i < matches.length; i++) {
+          let key = matches[i].substring(2, matches[i].length - 1);
+          if (!this.records[key]) {
+            throw new Error(`引用了不存在或未执行的用例变量: key=${key}`);
+          }
+        }
+      }
+    }
     return handleParamsValue(val, context);
   };
 
@@ -660,7 +750,38 @@ class InterfaceColContent extends Component {
   
   render() {
     const currProjectId = this.props.currProject._id;
+    const { rows, selectedRowKeys } = this.state;
     const columns = [
+      {
+        header: {
+          label: (
+            <Checkbox
+              indeterminate={
+                selectedRowKeys.length > 0 && selectedRowKeys.length < rows.length
+              }
+              checked={selectedRowKeys.length === rows.length}
+              onChange={this.onSelectAll}
+            />
+          )
+        },
+        cell: {
+          formatters: [
+            (text, { rowData }) => {
+              return (
+                <Checkbox
+                  checked={selectedRowKeys.includes(rowData._id)}
+                  onChange={() => this.onSelect(rowData._id)}
+                />
+              );
+            }
+          ]
+        },
+        props: {
+          style: {
+            width: '50px'
+          }
+        }
+      },
       {
         property: 'casename',
         header: {
@@ -851,7 +972,6 @@ class InterfaceColContent extends Component {
         }
       }
     ];
-    const { rows } = this.state;
     const components = {
       header: {
         cell: dnd.Header
@@ -1082,7 +1202,9 @@ class InterfaceColContent extends Component {
         <div className="component-label-wrapper">
           <Label onChange={val => this.handleChangeInterfaceCol(val, col_name)} desc={col_desc} />
         </div>
-
+        <div style={{ margin: '10px 0 10px 52px', color: this.state.selectedRowKeys.length > 0 ? 'inherit' : '#999' }}>
+          已选 {this.state.selectedRowKeys.length} 项
+        </div>
         <Table.Provider
           components={components}
           columns={resolvedColumns}

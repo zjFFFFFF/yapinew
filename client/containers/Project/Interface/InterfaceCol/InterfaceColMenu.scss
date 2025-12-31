@@ -36,6 +36,15 @@
       display: block;
     }
   }
+
+  .ant-tree-node-content-wrapper:hover {
+    .menu-title {
+      > span:first-child,
+      .casename {
+        color: #5c67f2;
+      }
+    }
+  }
 }
 
 .container {
@@ -89,7 +98,7 @@
   }
   .case-report {
     margin: 10px;
-
+    
     .case-report-title {
       font-size: 14px;
       font-weight: bold;
@@ -183,4 +192,26 @@
 .tree-wrapper {
   min-height: 500px;
   overflow-y: scroll;
+}
+
+.timer-menu-item {
+  padding-left: 24px;
+  cursor: pointer;
+  height: 40px;
+  line-height: 40px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  color: rgba(0,0,0,0.65);
+  transition: all 0.3s;
+
+  &:hover {
+    color: #5c67f2;
+    background-color: #f5f7fa;
+  }
+
+  &.selected {
+    background-color: rgba(92, 103, 242, 0.13);
+    color: #5c67f2;
+  }
 }

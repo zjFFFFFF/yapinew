@@ -1,4 +1,5 @@
 const fs = require('fs-extra');
+const { spawn } = require('child_process');
 const path = require('path');
 const yapi = require('../yapi.js');
 const sha1 = require('sha1');
@@ -586,7 +587,25 @@ ${JSON.stringify(schema, null, 2)}`)
     // script 是断言
     if (script) {
       logs.push('执行脚本:' + script)
-      result = await sandboxFn(context, script);
+      if (params.script_type === 'python') {
+        let pythonResult = await exports.runPythonScript({
+          status: context.status,
+          body: context.body,
+          header: context.header,
+          records: context.records,
+          params: context.params
+        }, script);
+
+        if (pythonResult.logs) {
+          logs.push(...pythonResult.logs);
+        }
+        if (pythonResult.error) {
+          throw new Error(pythonResult.error);
+        }
+        result = context; // Should we return context? JS version returns sandboxFn result which is sandbox.
+      } else {
+        result = await sandboxFn(context, script);
+      }
     }
     result.logs = logs;
     return yapi.commons.resReturn(result);
@@ -596,6 +615,114 @@ ${JSON.stringify(schema, null, 2)}`)
     return yapi.commons.resReturn(result, 400, err.name + ': ' + err.message);
   }
 };
+
+exports.runPythonScript = function(context, script) {
+  return new Promise((resolve, reject) => {
+    const pythonProcess = spawn('python3', ['-c', `
+import sys
+import json
+import io
+
+try:
+    input_str = sys.stdin.read()
+    if not input_str:
+        print(json.dumps({'logs': [], 'error': 'No input provided'}))
+        sys.exit(0)
+    
+    context = json.loads(input_str)
+    
+    status = context.get('status')
+    body = context.get('body')
+    header = context.get('header')
+    records = context.get('records')
+    params = context.get('params')
+    
+    logs = []
+    def log(msg):
+        logs.append("log: " + str(msg))
+    
+    user_context = {
+        'status': status,
+        'body': body,
+        'header': header,
+        'records': records,
+        'params': params,
+        'log': log,
+        'json': json
+    }
+    
+    # Capture stdout
+    buffer = io.StringIO()
+    sys.stdout = buffer
+
+    try:
+        exec(context.get('script'), user_context)
+    except Exception as e:
+        sys.stdout = sys.__stdout__
+        # Get captured stdout even if error occurred
+        user_output = buffer.getvalue()
+        if user_output:
+           logs.append("print: " + user_output)
+           
+        err_msg = str(e)
+        if not err_msg:
+            err_msg = repr(e)
+            
+        print(json.dumps({'logs': logs, 'error': err_msg}))
+        sys.exit(0)
+
+    # Get captured stdout and treat as logs
+    user_output = buffer.getvalue()
+    if user_output:
+       logs.append("print: " + user_output)
+    
+    # Restore stdout
+    sys.stdout = sys.__stdout__
+    
+    print(json.dumps({'logs': logs}))
+
+except Exception as e:
+    sys.stdout = sys.__stdout__
+    print(json.dumps({'logs': logs if 'logs' in locals() else [], 'error': str(e)}))
+`]);
+
+    let outputData = '';
+    let errorData = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+      outputData += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+      errorData += data.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+      if (code !== 0) {
+        return resolve({
+          logs: ['Error executing python script: ' + errorData],
+          error: 'Error executing python script: ' + errorData
+        });
+      }
+      try {
+        const result = JSON.parse(outputData);
+        resolve(result);
+      } catch (e) {
+        resolve({
+          logs: ['Error parsing python output: ' + outputData + ' | ' + errorData],
+          error: 'Error parsing python output: ' + outputData
+        });
+      }
+    });
+
+    const payload = JSON.stringify({
+      ...context,
+      script: script
+    });
+    pythonProcess.stdin.write(payload);
+    pythonProcess.stdin.end();
+  });
+}
 
 exports.getUserdata = async function getUserdata(uid, role) {
   role = role || 'dev';

@@ -389,13 +389,24 @@ class InterfaceEditForm extends Component {
       height: '500px',
       initialValue: this.state.markdown || this.state.desc
     });
+
+    document.addEventListener('keydown', this.handleKeyDown);
   }
 
   componentWillUnmount() {
     EditFormContext.props.changeEditStatus(false);
     EditFormContext = null;
     this._isMounted = false;
+    document.removeEventListener('keydown', this.handleKeyDown);
   }
+
+  handleKeyDown = (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      e.stopPropagation();
+      this.handleSubmit(e);
+    }
+  };
 
   addParams = (name, data) => {
     let newValue = {};

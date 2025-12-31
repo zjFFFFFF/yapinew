@@ -14,7 +14,8 @@ import {
   Switch,
   Row,
   Col,
-  Alert
+  Alert,
+  Radio
 } from 'antd';
 import constants from '../../constants/variable.js';
 import AceEditor from 'client/components/AceEditor/AceEditor';
@@ -67,6 +68,33 @@ export const InsertCodeMap = [
   },
   {
     code: 'assert.notDeepEqual(body, {"code": 0})',
+    title: '断言对象 body 不等于 {"code": 0}'
+  }
+];
+
+export const InsertCodeMapPython = [
+  {
+    code: 'if status == 200:\n    log("status is 200")\nelse:\n    raise Exception("status is not 200")',
+    title: '断言 httpCode 等于 200'
+  },
+  {
+    code: 'import json\nbody_json = json.loads(body)\nif body_json["code"] == 0:\n    log("code is 0")\nelse:\n    raise Exception("code is not 0")',
+    title: '断言返回数据 code 是 0'
+  },
+  {
+    code: 'if status != 404:\n    log("status is not 404")\nelse:\n    raise Exception("status is 404")',
+    title: '断言 httpCode 不是 404'
+  },
+  {
+    code: 'import json\nbody_json = json.loads(body)\nif body_json["code"] != 40000:\n    log("code is not 40000")\nelse:\n    raise Exception("code is 40000")',
+    title: '断言返回数据 code 不是 40000'
+  },
+  {
+    code: 'import json\nbody_json = json.loads(body)\nif body_json == {"code": 0}:\n    log("body is equal")\nelse:\n    raise Exception("body is not equal")',
+    title: '断言对象 body 等于 {"code": 0}'
+  },
+  {
+    code: 'import json\nbody_json = json.loads(body)\nif body_json != {"code": 0}:\n    log("body is not equal")\nelse:\n    raise Exception("body is equal")',
     title: '断言对象 body 不等于 {"code": 0}'
   }
 ];
@@ -129,6 +157,7 @@ export default class Run extends Component {
       mock_verify: false,
       enable_script: false,
       test_script: '',
+      test_script_type: 'js',
       hasPlugin: true,
       inputValue: '',
       cursurPosition: { row: 1, column: -1 },
@@ -1010,6 +1039,14 @@ export default class Run extends Component {
                   checked={this.state.enable_script}
                   onChange={e => this.setState({ enable_script: e })}
                 />
+                <Radio.Group 
+                  style={{marginLeft: '20px'}}
+                  value={this.state.test_script_type} 
+                  onChange={e => this.setState({test_script_type: e.target.value})}
+                >
+                  <Radio.Button value="js">Javascript</Radio.Button>
+                  <Radio.Button value="python">Python3</Radio.Button>
+                </Radio.Group>
               </h3>
               <p style={{ margin: '10px' }}>注：Test 脚本只有做自动化测试才执行</p>
               <Row>
@@ -1018,28 +1055,48 @@ export default class Run extends Component {
                     onChange={this.onOpenTest}
                     className="case-script"
                     data={this.state.test_script}
+                    mode={this.state.test_script_type === 'python' ? 'python' : 'javascript'}
                     ref={aceEditor => {
                       this.aceEditor = aceEditor;
                     }}
                   />
                 </Col>
                 <Col span="6">
-                  <div className="insert-code">
-                    {InsertCodeMap.map(item => {
-                      return (
-                        <div
-                          style={{ cursor: 'pointer' }}
-                          className="code-item"
-                          key={item.title}
-                          onClick={() => {
-                            this.handleInsertCode('\n' + item.code);
-                          }}
-                        >
-                          {item.title}
-                        </div>
-                      );
-                    })}
-                  </div>
+                  {this.state.test_script_type === 'js' ? (
+                    <div className="insert-code">
+                      {InsertCodeMap.map(item => {
+                        return (
+                          <div
+                            style={{ cursor: 'pointer' }}
+                            className="code-item"
+                            key={item.title}
+                            onClick={() => {
+                              this.handleInsertCode('\n' + item.code);
+                            }}
+                          >
+                            {item.title}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="insert-code">
+                      {InsertCodeMapPython.map(item => {
+                        return (
+                          <div
+                            style={{ cursor: 'pointer' }}
+                            className="code-item"
+                            key={item.title}
+                            onClick={() => {
+                              this.handleInsertCode('\n' + item.code);
+                            }}
+                          >
+                            {item.title}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </Col>
               </Row>
             </Tabs.TabPane>

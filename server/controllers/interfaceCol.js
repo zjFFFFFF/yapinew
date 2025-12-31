@@ -309,7 +309,8 @@ class interfaceColController extends baseController {
         project_id: 'number',
         col_id: 'number',
         interface_id: 'number',
-        case_env: 'string'
+        case_env: 'string',
+        test_script_type: 'string'
       });
 
       if (!params.project_id) {
@@ -561,7 +562,8 @@ class interfaceColController extends baseController {
       let params = ctx.request.body;
       params = yapi.commons.handleParams(params, {
         id: 'number',
-        casename: 'string'
+        casename: 'string',
+        test_script_type: 'string'
       });
 
       if (!params.id) {

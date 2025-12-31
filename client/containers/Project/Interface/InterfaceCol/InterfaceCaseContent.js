@@ -95,6 +95,22 @@ export default class InterfaceCaseContent extends Component {
     this.setState({ editCasename: this.props.currCase.casename });
   }
 
+  componentDidMount() {
+    document.addEventListener('keydown', this.handleKeyDown);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.handleKeyDown);
+  }
+
+  handleKeyDown = (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      e.stopPropagation();
+      this.updateCase();
+    }
+  };
+
   async componentWillReceiveProps(nextProps) {
     const oldCaseId = this.props.match.params.actionId;
     const newCaseId = nextProps.match.params.actionId;
@@ -125,7 +141,8 @@ export default class InterfaceCaseContent extends Component {
       test_script,
       enable_script,
       test_res_body,
-      test_res_header
+      test_res_header,
+      test_script_type
     } = this.postman.state;
 
     const { editCasename: casename } = this.state;
@@ -143,7 +160,8 @@ export default class InterfaceCaseContent extends Component {
       test_script,
       enable_script,
       test_res_body,
-      test_res_header
+      test_res_header,
+      test_script_type
     };
 
     const res = await axios.post('/api/col/up_case', params);
@@ -218,6 +236,7 @@ export default class InterfaceCaseContent extends Component {
         <div>
           {Object.keys(currCase).length > 0 && (
             <Postman
+              key={currCase._id}
               data={data}
               type="case"
               saveTip="更新保存修改"

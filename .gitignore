@@ -1,4 +1,4 @@
-﻿# kdiff3 ignore
+# kdiff3 ignore
 *.orig
 
 # maven ignore
@@ -33,10 +33,11 @@ Thumbs.db
 # *.zip
 # *.tar
 # *.tar.gz
+*.tgz
 
 node_modules/
 runtime/
-/prd/
+#/prd/
 /dev/
 .tags
 .tags1
@@ -44,3 +45,7 @@ tsconfig.json
 client/plugin-module.js
 .vscode
 /iconfont
+config.json
+data/
+mongodb-macos-aarch64-6.0.0/
+.trae/

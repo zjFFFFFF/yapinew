@@ -34,7 +34,7 @@ function createScript(plugin, pathAlias) {
 }
 
 function initPlugins(configPlugin) {
-  configPlugin = require('../config.json').plugins;
+  configPlugin = require('./config.json').plugins;
   var systemConfigPlugin = require('./common/config.js').exts;
 
   var scripts = [];
@@ -173,15 +173,19 @@ module.exports = {
             require.resolve('css-loader') +
               '?sourceMap!' +
               require.resolve('sass-loader') +
-              '?sourceMap'
+              '?' +
+              JSON.stringify({
+                sourceMap: true,
+                silenceDeprecations: ['legacy-js-api', 'import']
+              })
           )
         });
 
-        baseConfig.module.preLoaders.push({
-          test: /\.(js|jsx)$/,
-          exclude: /tui-editor|node_modules|google-diff.js/,
-          loader: 'eslint-loader'
-        });
+        // baseConfig.module.preLoaders.push({
+        //   test: /\.(js|jsx)$/,
+        //   exclude: /tui-editor|node_modules|google-diff.js/,
+        //   loader: 'eslint-loader'
+        // });
 
         baseConfig.module.preLoaders.push({
           test: /\.json$/,

@@ -387,6 +387,7 @@ class openController extends baseController {
         response: response,
         records: this.records,
         script: interfaceData.test_script,
+        script_type: interfaceData.test_script_type,
         params: requestParams
       }, interfaceData.col_id, interfaceData.interface_id, this.getUid());
       if (test.errcode !== 0) {

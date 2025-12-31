@@ -13,22 +13,7 @@ class Footer extends Component {
     footList: PropTypes.array
   };
   render() {
-    return (
-      <div className="footer-wrapper">
-        <Row className="footer-container">
-          {this.props.footList.map(function(item, i) {
-            return (
-              <FootItem
-                key={i}
-                linkList={item.linkList}
-                title={item.title}
-                iconType={item.iconType}
-              />
-            );
-          })}
-        </Row>
-      </div>
-    );
+    return null;
   }
 }
 

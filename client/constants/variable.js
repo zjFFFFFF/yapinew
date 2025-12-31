@@ -32,10 +32,10 @@ module.exports = {
     }
   },
   PROJECT_COLOR: {
-    blue: '#2395f1',
-    green: '#00a854',
-    yellow: '#ffbf00',
-    red: '#f56a00',
+    blue: '#5c67f2',
+    green: '#00b96b',
+    yellow: '#ffc53d',
+    red: '#ff4d4f',
     pink: '#f5317f',
     cyan: '#00a2ae',
     gray: '#bfbfbf',

@@ -8,7 +8,8 @@ const ModeMap = {
   json: 'ace/mode/json',
   text: 'ace/mode/text',
   xml: 'ace/mode/xml',
-  html: 'ace/mode/html'
+  html: 'ace/mode/html',
+  python: 'ace/mode/python'
 };
 
 const defaultStyle = { width: '100%', height: '200px' };
@@ -55,9 +56,11 @@ class AceEditor extends React.PureComponent {
     }
     if (nextProps.data !== this.props.data && this.editor.getValue() !== nextProps.data) {
       this.editor.setValue(nextProps.data);
+      this.editor.editor.clearSelection();
+    }
+    if (nextProps.mode !== this.props.mode) {
       let mode = nextProps.mode || 'javascript';
       this.editor.editor.getSession().setMode(getMode(mode));
-      this.editor.editor.clearSelection();
     }
   }
 

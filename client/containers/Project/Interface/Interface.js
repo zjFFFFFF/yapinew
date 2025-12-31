@@ -13,6 +13,8 @@ import InterfaceContent from './InterfaceList/InterfaceContent.js';
 
 import InterfaceColMenu from './InterfaceCol/InterfaceColMenu.js';
 import InterfaceColContent from './InterfaceCol/InterfaceColContent.js';
+import InterfaceColTimer from './InterfaceCol/InterfaceColTimer.js';
+import InterfaceColReport from './InterfaceCol/InterfaceColReport.js';
 import InterfaceCaseContent from './InterfaceCol/InterfaceCaseContent.js';
 import { getProject } from '../../../reducer/modules/project';
 import { setColData } from '../../../reducer/modules/interfaceCol.js';
@@ -33,6 +35,10 @@ const InterfaceRoute = props => {
     }
   } else if (props.match.params.action === 'col') {
     C = InterfaceColContent;
+  } else if (props.match.params.action === 'timer') {
+    C = InterfaceColTimer;
+  } else if (props.match.params.action === 'report') {
+    C = InterfaceColReport;
   } else if (props.match.params.action === 'case') {
     C = InterfaceCaseContent;
   } else {

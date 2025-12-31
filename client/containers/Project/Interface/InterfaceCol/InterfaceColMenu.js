@@ -40,6 +40,7 @@ const ColModalForm = Form.create()(props => {
   );
 });
 
+@withRouter
 @connect(
   state => {
     return {
@@ -63,7 +64,6 @@ const ColModalForm = Form.create()(props => {
     fetchProjectList
   }
 )
-@withRouter
 export default class InterfaceColMenu extends Component {
   static propTypes = {
     match: PropTypes.object,
@@ -412,8 +412,14 @@ export default class InterfaceColMenu extends Component {
     // };
 
     const defaultExpandedKeys = () => {
-      const { router, currCase, interfaceColList } = this.props,
+      const { router, currCase, interfaceColList, match } = this.props,
         rNull = { expands: [], selects: [] };
+      if (match.params.action === 'timer' || match.params.action === 'report') {
+        return {
+          expands: this.state.expands ? this.state.expands : [],
+          selects: []
+        };
+      }
       if (interfaceColList.length === 0) {
         return rNull;
       }
@@ -529,6 +535,14 @@ export default class InterfaceColMenu extends Component {
             </Button>
           </Tooltip>
         </div>
+        <div className={'timer-menu-item ' + (this.props.match.params.action === 'timer' ? 'selected' : '')} onClick={() => this.props.history.push('/project/' + currProjectId + '/interface/timer')}>
+            <Icon type="clock-circle-o" style={{marginRight: 5}} />
+            <span>定时任务</span>
+        </div>
+        <div className={'timer-menu-item ' + (this.props.match.params.action === 'report' ? 'selected' : '')} onClick={() => this.props.history.push('/project/' + currProjectId + '/interface/report')}>
+            <Icon type="file-text" style={{marginRight: 5}} />
+            <span>测试报告</span>
+        </div>
         <div className="tree-wrapper" style={{ maxHeight: parseInt(document.body.clientHeight) - headHeight + 'px'}}>
           <Tree
             className="col-list-tree"
@@ -542,13 +556,15 @@ export default class InterfaceColMenu extends Component {
             onExpand={this.onExpand}
             onDrop={this.onDrop}
           >
-            {list.map(col => (
+            {list.map(col => {
+              const isExpanded = currentKes.expands && currentKes.expands.indexOf('col_' + col._id) > -1;
+              return (
               <TreeNode
                 key={'col_' + col._id}
                 title={
                   <div className="menu-title">
                     <span>
-                      <Icon type="folder-open" style={{ marginRight: 5 }} />
+                      <Icon type={isExpanded ? 'folder-open' : 'folder'} style={{ marginRight: 5 }} />
                       <span>{col.name}</span>
                     </span>
                     <div className="btns">
@@ -601,7 +617,8 @@ export default class InterfaceColMenu extends Component {
               >
                 {col.caseList.map(itemInterfaceColCreate)}
               </TreeNode>
-            ))}
+              );
+            })}
           </Tree>
         </div>
         <ColModalForm

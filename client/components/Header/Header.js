@@ -32,7 +32,7 @@ let HeaderMenu = {
 plugin.emitHook('header_menu', HeaderMenu);
 
 const MenuUser = props => (
-  <Menu theme="dark" className="user-menu">
+  <Menu theme="light" className="user-menu">
     {Object.keys(HeaderMenu).map(key => {
       let item = HeaderMenu[key];
       const isAdmin = props.role === 'admin';
