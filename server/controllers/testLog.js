@@ -1,11 +1,13 @@
 const yapi = require('../yapi.js');
 const baseController = require('./base.js');
 const testLogModel = require('../models/testLog.js');
+const interfaceColModel = require('../models/interfaceCol.js');
 
 class testLogController extends baseController {
   constructor(ctx) {
     super(ctx);
     this.Model = yapi.getInst(testLogModel);
+    this.colModel = yapi.getInst(interfaceColModel);
   }
 
   /**
@@ -29,7 +31,23 @@ class testLogController extends baseController {
       }
 
       let result = await this.Model.list(project_id, parseInt(limit), parseInt(page));
-      ctx.body = yapi.commons.resReturn(result);
+      let list = result.map(item => item.toObject ? item.toObject() : item);
+      let colIds = list.map(item => item.col_id);
+      colIds = [...new Set(colIds)];
+
+      let cols = await this.colModel.model.find({ _id: { $in: colIds } }).select('name').exec();
+      let colMap = {};
+      cols.forEach(col => {
+        colMap[col._id] = col.name;
+      });
+
+      list.forEach(item => {
+        if (item.col_id && colMap[item.col_id]) {
+          item.col_name = colMap[item.col_id];
+        }
+      });
+
+      ctx.body = yapi.commons.resReturn(list);
     } catch (err) {
       ctx.body = yapi.commons.resReturn(null, 402, err.message);
     }

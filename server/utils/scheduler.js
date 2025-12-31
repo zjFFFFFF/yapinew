@@ -85,7 +85,9 @@ class Scheduler {
     for (let i = 0; i < caseList.length; i++) {
       let item = caseList[i];
       item.id = item._id;
-      item.case_env = env || item.case_env;
+      if(env && env !== 'unset') {
+        item.case_env = env;
+      }
       
       // Handle Headers
       item.req_headers = this.handleReqHeader(item.req_headers, projectEnv.env, item.case_env);
@@ -117,7 +119,7 @@ class Scheduler {
             project_id: project_id,
             col_id: col_id,
             timer_id: timer._id,
-            env: env,
+            env: env === 'unset' ? '默认环境' : env,
             test_list: testList,
             status: failedNum === 0 ? 'ok' : 'failed'
         });

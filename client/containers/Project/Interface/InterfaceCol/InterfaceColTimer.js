@@ -219,6 +219,7 @@ export default class InterfaceColTimer extends Component {
                 rules: [{ required: true, message: '请选择运行环境' }]
               })(
                 <Select placeholder="请选择运行环境">
+                  <Option key="default" value="unset">默认环境</Option>
                   {envList.map(env => (
                     <Option key={env.name} value={env.name}>{env.name}</Option>
                   ))}

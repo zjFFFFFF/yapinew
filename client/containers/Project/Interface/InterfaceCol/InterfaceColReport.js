@@ -90,11 +90,11 @@ export default class InterfaceColReport extends Component {
                 render: text => moment(text * 1000).format('YYYY-MM-DD HH:mm:ss')
             },
             {
-                title: 'Timer ID / Col ID',
-                dataIndex: 'col_id',
-                key: 'col_id',
+                title: '测试集合',
+                dataIndex: 'col_name',
+                key: 'col_name',
                 render: (text, record) => {
-                    return <span>{record.timer_id ? `Timer ID: ${record.timer_id}` : `Col ID: ${text}`}</span>
+                    return <span>{text || (record.timer_id ? `Timer ID: ${record.timer_id}` : `Col ID: ${record.col_id}`)}</span>
                 }
             },
             {

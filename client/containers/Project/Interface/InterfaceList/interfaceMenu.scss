@@ -2,3 +2,19 @@
   min-height: 500px;
   overflow-y: scroll;
 }
+
+.interface-list {
+  .ant-tree-node-selected {
+    .ant-tree-node-content-wrapper {
+      background-color: rgba(92, 103, 242, 0.13) !important;
+    }
+    
+    a {
+      color: #5c67f2 !important;
+      
+      .anticon {
+        color: #5c67f2 !important;
+      }
+    }
+  }
+}
